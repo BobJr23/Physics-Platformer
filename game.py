@@ -67,6 +67,49 @@ class Door:
     def home_state(self):
         self.body.position -= (self.change_x, self.change_y)
 
+class Complete:
+    def __init__(self) -> None:
+        self.fire_in = False
+        self.water_in = False
+
+    def check(self, c):
+        if self.water_in and self.fire_in:
+            return True
+        return False
+
+def create_level_1(width, height):
+    button_dict = {}
+    space = pymunk.Space()
+    space.gravity = (0, 980)
+
+    buttons = {}
+    x = 50
+    rects = [
+        # (X, Y),            (WIDTH,HEIGHT), COLOR
+        [(width / 3, height - 225), (width, 10), grey,]
+
+    ]
+
+    for z in range(3, 8):
+        rects.append([(width - 70, z * 100 + 100), (x, 10), red, 6])
+    for x in rects:
+        body = pymunk.Body(body_type=pymunk.Body.STATIC)
+        body.position = x[0]
+        shape = pymunk.Poly.create_box(body, x[1])
+        shape.elasticity = 0
+        shape.friction = 0.5
+        shape.collision_type = x[-1]
+        shape.color = (*x[2], 100)
+        space.add(body, shape)
+
+
+
+
+    #CREATE Objects
+
+
+    return space, button_dict
+
 def draw(space, window, draw_options, time):
     window.fill((105, 78, 76))
     space.debug_draw(draw_options)
