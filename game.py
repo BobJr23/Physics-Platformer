@@ -75,62 +75,18 @@ class Complete:
         return False
 
 
-def create_wall(space, width, height):
-    rects = [
-        [(width / 2, height - 10), (width, 20), 2],
-        [(width / 2, 10), (width, 20), 3],
-        [(10, height / 2), (20, height), 3],
-        [(width - 10, height / 2), (20, height), 3],
-    ]
-    for x in rects:
-        body = pymunk.Body(body_type=pymunk.Body.STATIC)
-        body.position = x[0]
-        shape = pymunk.Poly.create_box(body, x[1])
-        shape.elasticity = 0
-        shape.friction = 0.1
-        shape.collision_type = x[2]
-        shape.color = (*grey, 100)
-        space.add(body, shape)
-
-
-def create_structure(space, pos, size, color, mass):
-    body = pymunk.Body()
-    body.position = pos
-    shape = pymunk.Poly.create_box(body, size, radius=1)
-    shape.color = (*color, 100)
-    shape.mass = mass
-    shape.elasticity = 0
-    shape.friction = 0.4
-    shape.collision_type = 8
-    space.add(body, shape)
-
-
-def create_player(space, pos, size, color, mass):
-    body = pymunk.Body()
-    body.position = pos
-    shape = pymunk.Poly.create_box(body, size, radius=1)
-    shape.color = color
-    shape.mass = mass
-    shape.elasticity = 0
-    shape.friction = 0.1
-    shape.collision_type = 1
-    space.add(body, shape)
-    return body, shape
-
-
-def create_ball(space, radius, mass, pos):
-    body = pymunk.Body()
-    body.position = pos
-    # SHAPE STATS
-    shape = pymunk.Circle(body, radius)
-    shape.mass = mass
-    shape.color = (*black, 100)
-    shape.elasticity = 0
-    shape.friction = 0.4
-    shape.collision_type = 8
-    # ADD TO SIMULATION
-    space.add(body, shape)
-    return shape
+def draw(space, window, draw_options, time):
+    window.fill((105, 78, 76))
+    space.debug_draw(draw_options)
+    window.blit(
+        FONT.render(
+            str(int(time)),
+            False,
+            (0, 0, 0),
+        ),
+        (width / 2, 30),
+    )
+    pygame.display.update()
 
 
 def create_button(
@@ -167,43 +123,6 @@ def create_button(
     button = Button(door, body, shape)
     buttons.update({button: door})
     return buttons
-
-
-def create_swing(space, top_pos, bottom_pos, mass, shape):
-    rotation_center_body = pymunk.Body(body_type=pymunk.Body.STATIC)
-    rotation_center_body.position = top_pos
-
-    body = pymunk.Body()
-    body.position = bottom_pos
-    line = pymunk.Segment(body, (0, 0), (0, 0), 5)
-    circle = pymunk.Poly.create_box(
-        body,
-        shape,
-    )
-    line.friction = 1
-    circle.friction = 1
-    line.mass = 8
-    circle.mass = mass
-    circle.elasticity = 0.95
-    circle.collision_type = 2
-    circle.color = (*black, 100)
-    rotation_center_joint = pymunk.PinJoint(body, rotation_center_body, (0, 0), (0, 0))
-    space.add(circle, line, body, rotation_center_joint)
-    return body
-
-
-def draw(space, window, draw_options, time):
-    window.fill((105, 78, 76))
-    space.debug_draw(draw_options)
-    window.blit(
-        FONT.render(
-            str(int(time)),
-            False,
-            (0, 0, 0),
-        ),
-        (width / 2, 30),
-    )
-    pygame.display.update()
 
 
 def create_level_1(width, height):
@@ -308,7 +227,15 @@ def create_level_2(width, height):
         [(960, 800), (20, 20), grey, 2],
         [(1100, 700), (20, 20), grey, 2],
         [(60, height - 14), (140, 30), grey, 2],
-
+        [(420, 240), (20, 20), grey, 2],
+        [(820, 240), (20, 20), grey, 2],
+        [(900, 220), (20, 20), grey, 2],
+        [(350, height - 500), (50, 10), grey, 2],
+        [(50, height - 600), (90, 10), grey, 2],
+        [(230, height - 300), (140, 10), red, 6],
+        [(50, height - 450), (140, 10), red, 6],
+        [(50, height - 450), (140, 10), red, 6],
+        [(width / 2 + 100, height), (width, 50), green, 4],
     ]
     for x in rects:
         body = pymunk.Body(body_type=pymunk.Body.STATIC)
@@ -360,8 +287,13 @@ def create_level_2(width, height):
 
     create_swing(space, (250, height - 280), (250, height - 140), 2000, (200, 20))
     create_swing(
-        space, (width / 2.5, height / 2), (width / 2.5, height - 250), 2000, (200, 20))
-
+        space, (width / 2.5, height / 2), (width / 2.5, height - 250), 2000, (200, 20)
+    )
+    create_swing(space, (1300, 400), (1300, 600), 200, (100, 10))
+    create_swing(space, (1500, 300), (1500, 500), 200, (100, 10))
+    create_swing(space, (1300, 150), (1300, 350), 200, (100, 10))
+    create_swing(space, (1500, 50), (1500, 200), 200, (100, 10))
+    create_swing(space, (630, 50), (660, 200), 300, (500, 10))
     create_structure(space, (320, 150), (50, 50), black, 100)
     create_ball(space, 10, 300, (800, 100))
     f_s, w_s = (30, height - 100), (100, height - 100)  # Starting position
@@ -371,6 +303,92 @@ def create_level_2(width, height):
     player_water = Player(100, b, s, w_s)
 
     return player_fire, player_water, space, buttons
+
+
+def create_wall(space, width, height):
+    rects = [
+        [(width / 2, height - 10), (width, 20), 2],
+        [(width / 2, 10), (width, 20), 3],
+        [(10, height / 2), (20, height), 3],
+        [(width - 10, height / 2), (20, height), 3],
+    ]
+    for x in rects:
+        body = pymunk.Body(body_type=pymunk.Body.STATIC)
+        body.position = x[0]
+        shape = pymunk.Poly.create_box(body, x[1])
+        shape.elasticity = 0
+        shape.friction = 0.1
+        shape.collision_type = x[2]
+        shape.color = (*grey, 100)
+        space.add(body, shape)
+
+
+def create_structure(space, pos, size, color, mass):
+    body = pymunk.Body()
+    body.position = pos
+    shape = pymunk.Poly.create_box(body, size, radius=1)
+    shape.color = (*color, 100)
+    shape.mass = mass
+    shape.elasticity = 0
+    shape.friction = 0.4
+    shape.collision_type = 8
+    space.add(body, shape)
+
+
+def create_player(space, pos, size, color, mass):
+    body = pymunk.Body()
+    body.position = pos
+    shape = pymunk.Poly.create_box(body, size, radius=1)
+    shape.color = color
+    shape.mass = mass
+    shape.elasticity = 0
+    shape.friction = 0.1
+    shape.collision_type = 1
+    space.add(body, shape)
+    return body, shape
+
+
+def create_swing(space, top_pos, bottom_pos, mass, shape):
+    rotation_center_body = pymunk.Body(body_type=pymunk.Body.STATIC)
+    rotation_center_body.position = top_pos
+
+    body = pymunk.Body()
+    body.position = bottom_pos
+    line = pymunk.Segment(body, (0, 0), (0, 0), 5)
+    circle = pymunk.Poly.create_box(
+        body,
+        shape,
+    )
+    line.friction = 1
+    circle.friction = 1
+    line.mass = 8
+    circle.mass = mass
+    circle.elasticity = 0.95
+    circle.collision_type = 2
+    circle.color = (*black, 100)
+    rotation_center_joint = pymunk.PinJoint(body, rotation_center_body, (0, 0), (0, 0))
+    space.add(circle, line, body, rotation_center_joint)
+    return body
+
+
+def create_ball(space, radius, mass, pos):
+    body = pymunk.Body()
+    body.position = pos
+    # SHAPE STATS
+    shape = pymunk.Circle(body, radius)
+    shape.mass = mass
+    shape.color = (*black, 100)
+    shape.elasticity = 0
+    shape.friction = 0.4
+    shape.collision_type = 8
+    # ADD TO SIMULATION
+    space.add(body, shape)
+    return shape
+
+
+def setup():
+    ...
+
 
 def play(num=1):
     run = True
@@ -511,4 +529,5 @@ def play(num=1):
 
 
 if __name__ == "__main__":
+    setup()
     play(1)
