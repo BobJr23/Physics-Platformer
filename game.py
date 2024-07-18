@@ -4,13 +4,9 @@ import pymunk.pygame_util
 import math, sys, random
 
 pygame.init()
-
-# Pygame window setup
 width, height = 1600, 1000
 window = pygame.display.set_mode((width, height))
-pygame.display.set_caption("Physics Platformer!")
-
-# Colors
+pygame.display.set_caption("Fireboy and Watergirl!")
 white = (255, 255, 255)
 green = (50, 168, 82)
 black = (0, 0, 0)
@@ -18,16 +14,14 @@ red = (200, 0, 0)
 grey = (150, 150, 150)
 blue = (66, 185, 189)
 brown = (79, 44, 41)
-
-# Pygame variables
 FONT = pygame.font.Font(None, 40)
+#
 clock = pygame.time.Clock()
 FPS = 60
 dt = 1 / FPS
 run = True
 
 
-# Player class created with create_player
 class Player:
     def __init__(self, mass, body, shape, starting) -> None:
         self.mass = mass
@@ -47,7 +41,6 @@ class Button:
         self.shape = shape
 
 
-# Door and Button created together, will go in dict
 class Door:
     def __init__(self, body: pymunk.Body, shape, change_x, change_y, stop=None) -> None:
         self.button = None
@@ -124,6 +117,7 @@ def create_player(space, pos, size, color, mass):
     space.add(body, shape)
     return body, shape
 
+
 def create_ball(space, radius, mass, pos):
     body = pymunk.Body()
     body.position = pos
@@ -138,27 +132,6 @@ def create_ball(space, radius, mass, pos):
     space.add(body, shape)
     return shape
 
-def create_swing(space, top_pos, bottom_pos, mass, shape):
-    rotation_center_body = pymunk.Body(body_type=pymunk.Body.STATIC)
-    rotation_center_body.position = top_pos
-
-    body = pymunk.Body()
-    body.position = bottom_pos
-    line = pymunk.Segment(body, (0, 0), (0, 0), 5)
-    circle = pymunk.Poly.create_box(
-        body,
-        shape,
-    )
-    line.friction = 1
-    circle.friction = 1
-    line.mass = 8
-    circle.mass = mass
-    circle.elasticity = 0.95
-    circle.collision_type = 2
-    circle.color = (*black, 100)
-    rotation_center_joint = pymunk.PinJoint(body, rotation_center_body, (0, 0), (0, 0))
-    space.add(circle, line, body, rotation_center_joint)
-    return body
 
 def create_button(
         space,
@@ -195,6 +168,44 @@ def create_button(
     buttons.update({button: door})
     return buttons
 
+
+def create_swing(space, top_pos, bottom_pos, mass, shape):
+    rotation_center_body = pymunk.Body(body_type=pymunk.Body.STATIC)
+    rotation_center_body.position = top_pos
+
+    body = pymunk.Body()
+    body.position = bottom_pos
+    line = pymunk.Segment(body, (0, 0), (0, 0), 5)
+    circle = pymunk.Poly.create_box(
+        body,
+        shape,
+    )
+    line.friction = 1
+    circle.friction = 1
+    line.mass = 8
+    circle.mass = mass
+    circle.elasticity = 0.95
+    circle.collision_type = 2
+    circle.color = (*black, 100)
+    rotation_center_joint = pymunk.PinJoint(body, rotation_center_body, (0, 0), (0, 0))
+    space.add(circle, line, body, rotation_center_joint)
+    return body
+
+
+def draw(space, window, draw_options, time):
+    window.fill((105, 78, 76))
+    space.debug_draw(draw_options)
+    window.blit(
+        FONT.render(
+            str(int(time)),
+            False,
+            (0, 0, 0),
+        ),
+        (width / 2, 30),
+    )
+    pygame.display.update()
+
+
 def create_level_1(width, height):
     button_dict = {}
     space = pymunk.Space()
@@ -203,17 +214,17 @@ def create_level_1(width, height):
     buttons = {}
     x = 50
     rects = [
-        # (X, Y),            (WIDTH,HEIGHT), COLOR
-        [(width / 3, height - 225), (width, 10), grey],
-        [(width - 100, height - 50), (300, 100), grey],
-        [(500, 550), (300, 20), grey],
-        [(500, 300), (300, 20), grey],
-        [(1300, 500), (50, 20), grey],
-        [(width / 2, height - 10), (100, 30), green],
-        [(width - 500, 200), (80, 20), green],
-        [(width / 3, height - 10), (100, 30), blue],
-        [(width - 300, height - 10), (100, 30), red],
-        [(width - 200, 350), (100, 10), red],
+        # (X, Y),            (WIDTH,HEIGHT), COLOR, COLLISION_TYPE
+        [(width / 3, height - 225), (width, 10), grey, 2],
+        [(width - 100, height - 50), (300, 100), grey, 2],
+        [(500, 550), (300, 20), grey, 2],
+        [(500, 300), (300, 20), grey, 2],
+        [(1300, 500), (50, 20), grey, 2],
+        [(width / 2, height - 10), (100, 30), green, 4],
+        [(width - 500, 200), (80, 20), green, 4],
+        [(width / 3, height - 10), (100, 30), blue, 5],
+        [(width - 300, height - 10), (100, 30), red, 6],
+        [(width - 200, 350), (100, 10), red, 6],
     ]
 
     for z in range(3, 8):
@@ -287,24 +298,9 @@ def create_level_1(width, height):
     return player_fire, player_water, space, button_dict
 
 
-def draw(space, window, draw_options, time):
-    window.fill((105, 78, 76))
-    space.debug_draw(draw_options)
-    window.blit(
-        FONT.render(
-            str(int(time)),
-            False,
-            (0, 0, 0),
-        ),
-        (width / 2, 30),
-    )
-    pygame.display.update()
+def create_level_2(width, height):
+    ...
 
-
-time = 0
-player_fire, player_water, space, button_dict = create_level_1(
-    width, height
-)
 def play(num=1):
     run = True
     match num:
@@ -432,8 +428,9 @@ def play(num=1):
                     play(num)
                 elif event.key == pygame.K_1:
                     play(1)
-                elif event.key == pygame.K_2:
-                    play(2)
+                # Create level 2 later
+                # elif event.key == pygame.K_2:
+                #     play(2)
 
         draw(space, window, draw_options, time)
         space.step(dt)
@@ -441,3 +438,7 @@ def play(num=1):
         time += 1 / 60
 
     pygame.quit()
+
+
+if __name__ == "__main__":
+    play(1)
