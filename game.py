@@ -305,6 +305,75 @@ time = 0
 player_fire, player_water, space, button_dict = create_level_1(
     width, height
 )
+def pre_solve(arbiter, space, data):
+    if (
+            player_water.body.velocity[1] >= 0
+            and int(arbiter.shapes[0].body.moment) == 43333
+    ):
+        player_water.jumps = 1
+    elif (
+            player_fire.body.velocity[1] >= 0
+            and int(arbiter.shapes[0].body.moment) != 43333
+    ):
+        player_fire.jumps = 1
+    # 43333 is blue
+    # 42341 is red
+    return True
+
+def pre_solve3(arbiter, space, data):
+    if not int(arbiter.shapes[0].body.moment) == 43333:
+        player_fire.die()
+        return False
+    elif player_water.body.velocity[1] >= 0:
+        player_water.die()
+        return False
+
+def pre_solve4(arbiter, space, data):
+    if not int(arbiter.shapes[0].body.moment) == 43333:
+        player_fire.die()
+        return False
+    elif player_water.body.velocity[1] >= 0:
+        player_water.jumps = 1
+    return True
+
+def pre_solve5(arbiter, space, data):
+    if int(arbiter.shapes[0].body.moment) == 43333:
+        player_water.die()
+        return False
+    elif player_fire.body.velocity[1] >= 0:
+        player_fire.jumps = 1
+    return True
+
+def pre_solve6(arbiter, space, data):
+    for x in button_dict.keys():
+        if arbiter.shapes[1].body.position == x.body.position:
+            x.door.button_pressed()
+            break
+    # print(
+    #     "yes" if arbiter.shapes[1].body.position == x.body.position else 1
+    #     for x in button_dict
+    # )
+    return True
+
+#Collision handlers
+h = space.add_collision_handler(1, 2)  # Ground
+h.pre_solve = pre_solve
+h1 = space.add_collision_handler(1, 1)  # Players
+h1.pre_solve = lambda x, y, z: False
+h3 = space.add_collision_handler(1, 4)  # Poison
+h3.pre_solve = pre_solve3
+h4 = space.add_collision_handler(1, 5)  # Water
+h4.pre_solve = pre_solve4
+h5 = space.add_collision_handler(1, 6)  # Fire
+h5.pre_solve = pre_solve5
+h6 = space.add_collision_handler(1, 7)  # Button and player
+h6.pre_solve = pre_solve6
+h7 = space.add_collision_handler(8, 7)  # Button and object
+h7.pre_solve = pre_solve6
+h8 = space.add_collision_handler(1, 8)  # player and object
+h8.pre_solve = pre_solve
+
+
 while run:
 
     keys = pygame.key.get_pressed()
