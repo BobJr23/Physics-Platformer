@@ -160,8 +160,42 @@ def create_swing(space, top_pos, bottom_pos, mass, shape):
     space.add(circle, line, body, rotation_center_joint)
     return body
 
+def create_button(
+        space,
+        button_pos,
+        button_shape,
+        door_pos,
+        door_shape,
+        stop,
+        change,
+        buttons,
+        collision_type_door=2,
+        color_door=white,
+):
+    # BUTTON
+    body = pymunk.Body(body_type=pymunk.Body.STATIC)
+    body.position = button_pos
+    shape = pymunk.Poly.create_box(body, button_shape)
+    shape.elasticity = 0
+    shape.friction = 0.5
+    shape.collision_type = 7
+    shape.color = (*brown, 100)
+    space.add(body, shape)
+    # DOOR
+    body1 = pymunk.Body(body_type=pymunk.Body.KINEMATIC)
+    body1.position = door_pos
+    shape1 = pymunk.Poly.create_box(body1, door_shape)
+    shape1.elasticity = 0
+    shape1.friction = 0.5
+    shape1.collision_type = collision_type_door
+    shape1.color = (*color_door, 100)
+    space.add(body1, shape1)
+    door = Door(body1, shape1, change[0], change[1], stop)
+    button = Button(door, body, shape)
+    buttons.update({button: door})
+    return buttons
 
-def create_level_1(WIDTH, height):
+def create_level_1(width, height):
     button_dict = {}
     space = pymunk.Space()
     space.gravity = (0, 980)
@@ -170,21 +204,20 @@ def create_level_1(WIDTH, height):
     x = 50
     rects = [
         # (X, Y),            (WIDTH,HEIGHT), COLOR
-        [(WIDTH / 3, height - 225), (WIDTH, 10), grey, 2],
-        [(WIDTH - 100, height - 50), (300, 100), grey, 2],
-        [(500, 550), (300, 20), grey, 2],
-        [(500, 300), (300, 20), grey, 2],
-        [(1300, 500), (50, 20), grey, 2],
-        [(WIDTH / 2, height - 10), (100, 30), green, 4],
-        [(WIDTH - 500, 200), (80, 20), green, 4],
-        [(WIDTH / 3, height - 10), (100, 30), blue, 5],
-        [(WIDTH - 300, height - 10), (100, 30), red, 6],
-        [(WIDTH - 200, 350), (100, 10), red, 6]
-
+        [(width / 3, height - 225), (width, 10), grey],
+        [(width - 100, height - 50), (300, 100), grey],
+        [(500, 550), (300, 20), grey],
+        [(500, 300), (300, 20), grey],
+        [(1300, 500), (50, 20), grey],
+        [(width / 2, height - 10), (100, 30), green],
+        [(width - 500, 200), (80, 20), green],
+        [(width / 3, height - 10), (100, 30), blue],
+        [(width - 300, height - 10), (100, 30), red],
+        [(width - 200, 350), (100, 10), red],
     ]
 
     for z in range(3, 8):
-        rects.append([(WIDTH - 70, z * 100 + 100), (x, 10), red, 6])
+        rects.append([(width - 70, z * 100 + 100), (x, 10), red, 6])
     for x in rects:
         body = pymunk.Body(body_type=pymunk.Body.STATIC)
         body.position = x[0]
@@ -195,8 +228,52 @@ def create_level_1(WIDTH, height):
         shape.color = (*x[2], 100)
         space.add(body, shape)
 
-    #CREATE Objects
-    create_wall(space, WIDTH, height)
+    button_make = [
+        [
+            space,  # Space
+            (10, 985),
+            (100, 20),
+            (1200, 30),
+            (100, 20),
+            (1200, 200),
+            (0, 2),
+            buttons,
+        ],
+        [
+            space,
+            (300, 300),
+            (100, 20),
+            (1100, 220),
+            (80, 20),
+            (1100, 190),
+            (0, -2),
+            buttons,
+        ],
+        [
+            space,
+            (500, 300),
+            (100, 20),
+            (200, 500),
+            (80, 20),
+            (200, 400),
+            (0, -2),
+            buttons,
+        ],
+        [
+            space,
+            (1500, 300),
+            (50, 20),
+            (800, 150),
+            (80, 20),
+            (1100, 150),
+            (2, 0),
+            buttons,
+        ],
+    ]
+    # space, buttonpos, buttonshape, doorpos, doorshape, stop, change, color, buttons_dict
+    for x in button_make:
+        buttons = create_button(*x)
+    create_wall(space, width, height)
     create_ball(space, 20, 20, (300, 300))
     create_structure(space, (100, 100), (50, 50), black, 100)
     create_swing(space, (900, 100), (800, 300), 2000, (200, 20))
@@ -204,6 +281,8 @@ def create_level_1(WIDTH, height):
     player_fire = Player(100, b, s, (200, height - 100))
     b, s = create_player(space, (300, height - 100), (40, 60), (*blue, 100), 100)
     player_water = Player(100, b, s, (300, height - 100))
+    button_dict.update(buttons)
+    create_wall(space, width, height)
 
     return player_fire, player_water, space, button_dict
 
@@ -227,6 +306,9 @@ player_fire, player_water, space, button_dict = create_level_1(
     width, height
 )
 while run:
+
+    keys = pygame.key.get_pressed()
+
     if keys[pygame.K_a]:
         player_fire.body.position -= (speed, 0)
     if keys[pygame.K_d]:
