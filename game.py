@@ -161,7 +161,7 @@ def create_swing(space, top_pos, bottom_pos, mass, shape):
     return body
 
 
-def create_level_1(width, height):
+def create_level_1(WIDTH, height):
     button_dict = {}
     space = pymunk.Space()
     space.gravity = (0, 980)
@@ -170,12 +170,21 @@ def create_level_1(width, height):
     x = 50
     rects = [
         # (X, Y),            (WIDTH,HEIGHT), COLOR
-        [(width / 3, height - 225), (width, 10), grey, ]
+        [(WIDTH / 3, height - 225), (WIDTH, 10), grey, 2],
+        [(WIDTH - 100, height - 50), (300, 100), grey, 2],
+        [(500, 550), (300, 20), grey, 2],
+        [(500, 300), (300, 20), grey, 2],
+        [(1300, 500), (50, 20), grey, 2],
+        [(WIDTH / 2, height - 10), (100, 30), green, 4],
+        [(WIDTH - 500, 200), (80, 20), green, 4],
+        [(WIDTH / 3, height - 10), (100, 30), blue, 5],
+        [(WIDTH - 300, height - 10), (100, 30), red, 6],
+        [(WIDTH - 200, 350), (100, 10), red, 6]
 
     ]
 
     for z in range(3, 8):
-        rects.append([(width - 70, z * 100 + 100), (x, 10), red, 6])
+        rects.append([(WIDTH - 70, z * 100 + 100), (x, 10), red, 6])
     for x in rects:
         body = pymunk.Body(body_type=pymunk.Body.STATIC)
         body.position = x[0]
@@ -187,7 +196,7 @@ def create_level_1(width, height):
         space.add(body, shape)
 
     #CREATE Objects
-    create_wall(space, width, height)
+    create_wall(space, WIDTH, height)
     create_ball(space, 20, 20, (300, 300))
     create_structure(space, (100, 100), (50, 50), black, 100)
     create_swing(space, (900, 100), (800, 300), 2000, (200, 20))
@@ -218,6 +227,28 @@ player_fire, player_water, space, button_dict = create_level_1(
     width, height
 )
 while run:
+    if keys[pygame.K_a]:
+        player_fire.body.position -= (speed, 0)
+    if keys[pygame.K_d]:
+        player_fire.body.position += (speed, 0)
+    if keys[pygame.K_w] and player_fire.jumps > 0:
+        player_fire.body.apply_impulse_at_local_point((0, -50000))
+        player_fire.jumps = 0
+        # WATER CONTROLS
+    if keys[pygame.K_LEFT]:
+        player_water.body.position -= (speed, 0)
+    if keys[pygame.K_RIGHT]:
+        player_water.body.position += (speed, 0)
+    if keys[pygame.K_UP] and player_water.jumps > 0:
+        player_water.body.apply_impulse_at_local_point((0, -50000))
+        player_water.jumps = 0
+
+    # places character at mouse for game testing
+    if pygame.mouse.get_pressed(3)[0]:  # left
+        player_fire.body.position = pygame.mouse.get_pos()
+    if pygame.mouse.get_pressed(3)[2]:  # right
+        player_water.body.position = pygame.mouse.get_pos()
+
     space = pymunk.Space()
     space.gravity = (0, 980)
     draw_options = pymunk.pygame_util.DrawOptions(window)
