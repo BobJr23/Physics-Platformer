@@ -26,7 +26,7 @@ FPS = 60
 dt = 1 / FPS
 run = True
 
-
+# Player class created with create_player
 class Player:
     def __init__(self, mass, body, shape, starting) -> None:
         self.mass = mass
@@ -38,13 +38,14 @@ class Player:
     def die(self):
         self.body.position = self.starting
 
+
 class Button:
     def __init__(self, door, body, shape) -> None:
         self.door = door
         self.body = body
         self.shape = shape
 
-
+# Door and Button created together, will go in dict
 class Door:
     def __init__(self, body: pymunk.Body, shape, change_x, change_y, stop=None) -> None:
         self.button = None
@@ -76,6 +77,71 @@ class Complete:
         if self.water_in and self.fire_in:
             return True
         return False
+
+def create_wall(space, width, height):
+    rects = [
+        [(width / 2, height - 10), (width, 20), 2],
+        [(width / 2, 10), (width, 20), 3],
+        [(10, height / 2), (20, height), 3],
+        [(width - 10, height / 2), (20, height), 3],
+    ]
+    for x in rects:
+        body = pymunk.Body(body_type=pymunk.Body.STATIC)
+        body.position = x[0]
+        shape = pymunk.Poly.create_box(body, x[1])
+        shape.elasticity = 0
+        shape.friction = 0.1
+        shape.collision_type = x[2]
+        shape.color = (*grey, 100)
+        space.add(body, shape)
+
+
+def create_structure(space, pos, size, color, mass):
+    body = pymunk.Body()
+    body.position = pos
+    shape = pymunk.Poly.create_box(body, size, radius=1)
+    shape.color = (*color, 100)
+    shape.mass = mass
+    shape.elasticity = 0
+    shape.friction = 0.4
+    shape.collision_type = 8
+    space.add(body, shape)
+
+
+def create_player(space, pos, size, color, mass):
+    body = pymunk.Body()
+    body.position = pos
+    shape = pymunk.Poly.create_box(body, size, radius=1)
+    shape.color = color
+    shape.mass = mass
+    shape.elasticity = 0
+    shape.friction = 0.1
+    shape.collision_type = 1
+    space.add(body, shape)
+    return body, shape
+
+
+def create_swing(space, top_pos, bottom_pos, mass, shape):
+    rotation_center_body = pymunk.Body(body_type=pymunk.Body.STATIC)
+    rotation_center_body.position = top_pos
+
+    body = pymunk.Body()
+    body.position = bottom_pos
+    line = pymunk.Segment(body, (0, 0), (0, 0), 5)
+    circle = pymunk.Poly.create_box(
+        body,
+        shape,
+    )
+    line.friction = 1
+    circle.friction = 1
+    line.mass = 8
+    circle.mass = mass
+    circle.elasticity = 0.95
+    circle.collision_type = 2
+    circle.color = (*black, 100)
+    rotation_center_joint = pymunk.PinJoint(body, rotation_center_body, (0, 0), (0, 0))
+    space.add(circle, line, body, rotation_center_joint)
+    return body
 
 def create_level_1(width, height):
     button_dict = {}
