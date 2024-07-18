@@ -26,6 +26,7 @@ FPS = 60
 dt = 1 / FPS
 run = True
 
+
 # Player class created with create_player
 class Player:
     def __init__(self, mass, body, shape, starting) -> None:
@@ -44,6 +45,7 @@ class Button:
         self.door = door
         self.body = body
         self.shape = shape
+
 
 # Door and Button created together, will go in dict
 class Door:
@@ -68,6 +70,7 @@ class Door:
     def home_state(self):
         self.body.position -= (self.change_x, self.change_y)
 
+
 class Complete:
     def __init__(self) -> None:
         self.fire_in = False
@@ -77,6 +80,7 @@ class Complete:
         if self.water_in and self.fire_in:
             return True
         return False
+
 
 def create_wall(space, width, height):
     rects = [
@@ -120,6 +124,19 @@ def create_player(space, pos, size, color, mass):
     space.add(body, shape)
     return body, shape
 
+def create_ball(space, radius, mass, pos):
+    body = pymunk.Body()
+    body.position = pos
+    # SHAPE STATS
+    shape = pymunk.Circle(body, radius)
+    shape.mass = mass
+    shape.color = (*black, 100)
+    shape.elasticity = 0
+    shape.friction = 0.4
+    shape.collision_type = 8
+    # ADD TO SIMULATION
+    space.add(body, shape)
+    return shape
 
 def create_swing(space, top_pos, bottom_pos, mass, shape):
     rotation_center_body = pymunk.Body(body_type=pymunk.Body.STATIC)
@@ -143,6 +160,7 @@ def create_swing(space, top_pos, bottom_pos, mass, shape):
     space.add(circle, line, body, rotation_center_joint)
     return body
 
+
 def create_level_1(width, height):
     button_dict = {}
     space = pymunk.Space()
@@ -152,7 +170,7 @@ def create_level_1(width, height):
     x = 50
     rects = [
         # (X, Y),            (WIDTH,HEIGHT), COLOR
-        [(width / 3, height - 225), (width, 10), grey,]
+        [(width / 3, height - 225), (width, 10), grey, ]
 
     ]
 
@@ -168,13 +186,18 @@ def create_level_1(width, height):
         shape.color = (*x[2], 100)
         space.add(body, shape)
 
-
-
-
     #CREATE Objects
+    create_wall(space, width, height)
+    create_ball(space, 20, 20, (300, 300))
+    create_structure(space, (100, 100), (50, 50), black, 100)
+    create_swing(space, (900, 100), (800, 300), 2000, (200, 20))
+    b, s = create_player(space, (200, height - 100), (40, 59), (*red, 100), 100)
+    player_fire = Player(100, b, s, (200, height - 100))
+    b, s = create_player(space, (300, height - 100), (40, 60), (*blue, 100), 100)
+    player_water = Player(100, b, s, (300, height - 100))
 
+    return player_fire, player_water, space, button_dict
 
-    return space, button_dict
 
 def draw(space, window, draw_options, time):
     window.fill((105, 78, 76))
@@ -189,7 +212,11 @@ def draw(space, window, draw_options, time):
     )
     pygame.display.update()
 
+
 time = 0
+player_fire, player_water, space, button_dict = create_level_1(
+    width, height
+)
 while run:
     space = pymunk.Space()
     space.gravity = (0, 980)
