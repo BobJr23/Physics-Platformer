@@ -305,110 +305,139 @@ time = 0
 player_fire, player_water, space, button_dict = create_level_1(
     width, height
 )
-def pre_solve(arbiter, space, data):
-    if (
-            player_water.body.velocity[1] >= 0
-            and int(arbiter.shapes[0].body.moment) == 43333
-    ):
-        player_water.jumps = 1
-    elif (
-            player_fire.body.velocity[1] >= 0
-            and int(arbiter.shapes[0].body.moment) != 43333
-    ):
-        player_fire.jumps = 1
-    # 43333 is blue
-    # 42341 is red
-    return True
-
-def pre_solve3(arbiter, space, data):
-    if not int(arbiter.shapes[0].body.moment) == 43333:
-        player_fire.die()
-        return False
-    elif player_water.body.velocity[1] >= 0:
-        player_water.die()
-        return False
-
-def pre_solve4(arbiter, space, data):
-    if not int(arbiter.shapes[0].body.moment) == 43333:
-        player_fire.die()
-        return False
-    elif player_water.body.velocity[1] >= 0:
-        player_water.jumps = 1
-    return True
-
-def pre_solve5(arbiter, space, data):
-    if int(arbiter.shapes[0].body.moment) == 43333:
-        player_water.die()
-        return False
-    elif player_fire.body.velocity[1] >= 0:
-        player_fire.jumps = 1
-    return True
-
-def pre_solve6(arbiter, space, data):
-    for x in button_dict.keys():
-        if arbiter.shapes[1].body.position == x.body.position:
-            x.door.button_pressed()
-            break
-    # print(
-    #     "yes" if arbiter.shapes[1].body.position == x.body.position else 1
-    #     for x in button_dict
-    # )
-    return True
-
-#Collision handlers
-h = space.add_collision_handler(1, 2)  # Ground
-h.pre_solve = pre_solve
-h1 = space.add_collision_handler(1, 1)  # Players
-h1.pre_solve = lambda x, y, z: False
-h3 = space.add_collision_handler(1, 4)  # Poison
-h3.pre_solve = pre_solve3
-h4 = space.add_collision_handler(1, 5)  # Water
-h4.pre_solve = pre_solve4
-h5 = space.add_collision_handler(1, 6)  # Fire
-h5.pre_solve = pre_solve5
-h6 = space.add_collision_handler(1, 7)  # Button and player
-h6.pre_solve = pre_solve6
-h7 = space.add_collision_handler(8, 7)  # Button and object
-h7.pre_solve = pre_solve6
-h8 = space.add_collision_handler(1, 8)  # player and object
-h8.pre_solve = pre_solve
-
-
-while run:
-
-    keys = pygame.key.get_pressed()
-
-    if keys[pygame.K_a]:
-        player_fire.body.position -= (speed, 0)
-    if keys[pygame.K_d]:
-        player_fire.body.position += (speed, 0)
-    if keys[pygame.K_w] and player_fire.jumps > 0:
-        player_fire.body.apply_impulse_at_local_point((0, -50000))
-        player_fire.jumps = 0
-        # WATER CONTROLS
-    if keys[pygame.K_LEFT]:
-        player_water.body.position -= (speed, 0)
-    if keys[pygame.K_RIGHT]:
-        player_water.body.position += (speed, 0)
-    if keys[pygame.K_UP] and player_water.jumps > 0:
-        player_water.body.apply_impulse_at_local_point((0, -50000))
-        player_water.jumps = 0
-
-    # places character at mouse for game testing
-    if pygame.mouse.get_pressed(3)[0]:  # left
-        player_fire.body.position = pygame.mouse.get_pos()
-    if pygame.mouse.get_pressed(3)[2]:  # right
-        player_water.body.position = pygame.mouse.get_pos()
-
-    space = pymunk.Space()
-    space.gravity = (0, 980)
+def play(num=1):
+    run = True
+    match num:
+        case 1:
+            player_fire, player_water, space, button_dict = create_level_1(
+                width, height
+            )
+        case 2:
+            player_fire, player_water, space, button_dict = create_level_2(
+                width, height
+            )
     draw_options = pymunk.pygame_util.DrawOptions(window)
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            run = False
+    speed = 3
 
-    draw(space, window, draw_options, time)
-    space.step(dt)
-    clock.tick(FPS)
-    time += 1 / 60
-pygame.quit()
+    def pre_solve(arbiter, space, data):
+        if (
+                player_water.body.velocity[1] >= 0
+                and int(arbiter.shapes[0].body.moment) == 43333
+        ):
+            player_water.jumps = 1
+        elif (
+                player_fire.body.velocity[1] >= 0
+                and int(arbiter.shapes[0].body.moment) != 43333
+        ):
+            player_fire.jumps = 1
+        # 43333 is blue
+        # 42341 is red
+        return True
+
+    def pre_solve3(arbiter, space, data):
+        if not int(arbiter.shapes[0].body.moment) == 43333:
+            player_fire.die()
+            return False
+        elif player_water.body.velocity[1] >= 0:
+            player_water.die()
+            return False
+
+    def pre_solve4(arbiter, space, data):
+        if not int(arbiter.shapes[0].body.moment) == 43333:
+            player_fire.die()
+            return False
+        elif player_water.body.velocity[1] >= 0:
+            player_water.jumps = 1
+        return True
+
+    def pre_solve5(arbiter, space, data):
+        if int(arbiter.shapes[0].body.moment) == 43333:
+            player_water.die()
+            return False
+        elif player_fire.body.velocity[1] >= 0:
+            player_fire.jumps = 1
+        return True
+
+    def pre_solve6(arbiter, space, data):
+        for x in button_dict.keys():
+            if arbiter.shapes[1].body.position == x.body.position:
+                x.door.button_pressed()
+                break
+        # print(
+        #     "yes" if arbiter.shapes[1].body.position == x.body.position else 1
+        #     for x in button_dict
+        # )
+        return True
+
+    h = space.add_collision_handler(1, 2)  # Ground
+    h.pre_solve = pre_solve
+    h1 = space.add_collision_handler(1, 1)  # Players
+    h1.pre_solve = lambda x, y, z: False
+    h3 = space.add_collision_handler(1, 4)  # Poison
+    h3.pre_solve = pre_solve3
+    h4 = space.add_collision_handler(1, 5)  # Water
+    h4.pre_solve = pre_solve4
+    h5 = space.add_collision_handler(1, 6)  # Fire
+    h5.pre_solve = pre_solve5
+    h6 = space.add_collision_handler(1, 7)  # Button and player
+    h6.pre_solve = pre_solve6
+    h7 = space.add_collision_handler(8, 7)  # Button and object
+    h7.pre_solve = pre_solve6
+    h8 = space.add_collision_handler(1, 8)  # player and object
+    h8.pre_solve = pre_solve
+    time = 0
+    while run:
+        player_fire.body.velocity = pymunk.Vec2d(0, player_fire.body.velocity[1])
+        player_water.body.velocity = pymunk.Vec2d(0, player_water.body.velocity[1])
+        player_fire.body.angle = 0
+        player_water.body.angle = 0
+        for x in button_dict.values():
+            if not x.moving and x.body.position != x.start:
+                x.home_state()
+            x.moving = False
+        keys = pygame.key.get_pressed()
+
+        # FIRE CONTROLS
+        if keys[pygame.K_a]:
+            player_fire.body.position -= (speed, 0)
+        if keys[pygame.K_d]:
+            player_fire.body.position += (speed, 0)
+        if keys[pygame.K_w] and player_fire.jumps > 0:
+            player_fire.body.apply_impulse_at_local_point((0, -50000))
+            player_fire.jumps = 0
+        # WATER CONTROLS
+        if keys[pygame.K_LEFT]:
+            player_water.body.position -= (speed, 0)
+        if keys[pygame.K_RIGHT]:
+            player_water.body.position += (speed, 0)
+        if keys[pygame.K_UP] and player_water.jumps > 0:
+            player_water.body.apply_impulse_at_local_point((0, -50000))
+            player_water.jumps = 0
+        # places character at mouse
+
+        if pygame.mouse.get_pressed(3)[0]:  # left
+            player_fire.body.position = pygame.mouse.get_pos()
+        if pygame.mouse.get_pressed(3)[2]:  # right
+            player_water.body.position = pygame.mouse.get_pos()
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                run = False
+            if event.type == pygame.KEYDOWN and event.key in (
+                    pygame.K_r,
+                    pygame.K_1,
+                    pygame.K_2,
+            ):
+                if event.key == pygame.K_r:
+                    play(num)
+                elif event.key == pygame.K_1:
+                    play(1)
+                elif event.key == pygame.K_2:
+                    play(2)
+
+        draw(space, window, draw_options, time)
+        space.step(dt)
+        clock.tick(FPS)
+        time += 1 / 60
+
+    pygame.quit()
