@@ -299,7 +299,78 @@ def create_level_1(width, height):
 
 
 def create_level_2(width, height):
-    ...
+    space = pymunk.Space()
+    space.gravity = (0, 980)
+    buttons = {}
+    rects = [
+        # (X, Y),            (WIDTH,HEIGHT), COLOR, COLLISION_TYPE
+        [(500, 450), (170, 10), grey, 2],
+        [(960, 800), (20, 20), grey, 2],
+        [(1100, 700), (20, 20), grey, 2],
+        [(60, height - 14), (140, 30), grey, 2],
+
+    ]
+    for x in rects:
+        body = pymunk.Body(body_type=pymunk.Body.STATIC)
+        body.position = x[0]
+        shape = pymunk.Poly.create_box(body, x[1])
+        shape.elasticity = 0
+        shape.friction = 0.5
+        shape.collision_type = x[-1]
+        shape.color = (*x[2], 100)
+        space.add(body, shape)
+
+    button_make = [
+        [
+            space,
+            (width - 50, 100),
+            (50, 20),
+            (310, 150),
+            (150, 10),
+            (310, height - 550),
+            (0, 2),
+            buttons,
+        ],
+        [
+            space,
+            (880, 250),
+            (50, 20),
+            (400, 400),
+            (20, 200),
+            (400, 580),
+            (0, 2),
+            buttons,
+            4,
+            green,
+        ],
+        [
+            space,
+            (width / 2.5, height / 2 - 20),
+            (100, 10),
+            (900, 500),
+            (300, 10),
+            (1300, 100),
+            (1, -1),
+            buttons,
+        ],
+    ]
+    # space, buttonpos, buttonshape, doorpos, doorshape, stop, change, buttons, collision_type_door {2}
+    for x in button_make:
+        buttons = create_button(*x)
+
+    create_swing(space, (250, height - 280), (250, height - 140), 2000, (200, 20))
+    create_swing(
+        space, (width / 2.5, height / 2), (width / 2.5, height - 250), 2000, (200, 20))
+
+    create_structure(space, (320, 150), (50, 50), black, 100)
+    create_ball(space, 10, 300, (800, 100))
+    f_s, w_s = (30, height - 100), (100, height - 100)  # Starting position
+    b, s = create_player(space, f_s, (40, 59), (*red, 100), 100)
+    player_fire = Player(100, b, s, f_s)
+    b, s = create_player(space, w_s, (40, 60), (*blue, 100), 100)
+    player_water = Player(100, b, s, w_s)
+
+    return player_fire, player_water, space, buttons
 
 def play(num=1):
     run = True
@@ -428,9 +499,8 @@ def play(num=1):
                     play(num)
                 elif event.key == pygame.K_1:
                     play(1)
-                # Create level 2 later
-                # elif event.key == pygame.K_2:
-                #     play(2)
+                elif event.key == pygame.K_2:
+                    play(2)
 
         draw(space, window, draw_options, time)
         space.step(dt)
